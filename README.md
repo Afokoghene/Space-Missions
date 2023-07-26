@@ -69,6 +69,8 @@ Below are the column headers and the type of data each columnholds.
 9. Price: This possibly holds the price of each space rocket used for the missions.
 10. Mission Status: This holds the status of each mission embarked on and it holds values such as Success, Failure, Prtial Failure or Pre Launch Failure.
 
+**NOTE:** As the description states above, this dataset contains data only til August of 2022 so I do not really think 2022 should be used to judge that much as it isn't complete compared to the other years.
+
 ---
 
 ### Transformation/Cleaning
@@ -350,7 +352,7 @@ ORDER BY PercentageTotal DESC;
 5. What is the count of successful missions by country?
 - Using the SQL query below, we are able to see the top 5 countries with most successful misssions as shown in the table below the query.
 ```sql
-SELECT Country, COUNT(MissionStatus) AS Successful_mission_count
+SELECT TOP 5 Country, COUNT(MissionStatus) AS Successful_mission_count
 FROM SQLPractice.dbo.space_missions
 WHERE MissionStatus = 'Success'
 GROUP BY Country
@@ -369,7 +371,7 @@ ORDER BY successful_mission_count DESC
 6. What is the count of failed missions by country?
 - Using the SQL query below, we are able to see the top 5 countries with most failed misssions as shown in the table below the query.
 ```sql
-SELECT Country, COUNT(MissionStatus) AS Failed_mission_count
+SELECT TOP 5 Country, COUNT(MissionStatus) AS Failed_mission_count
 FROM SQLPractice.dbo.space_missions
 WHERE MissionStatus IN ('Failure', 'Partial Failure', 'Prelaunch Failure')
 GROUP BY Country
@@ -382,6 +384,157 @@ ORDER BY Failed_mission_count DESC
 | 3            | Russia       | 93                   |
 | 4            | China        | 30                   |
 | 5            | France       | 19                   |
+
+---
+
+7. Show the top 10 clocations with the most rocket launches
+- Using the query below, we are able to see the top 10 locations from which the most successful space missions were launched. 
+```sql
+SELECT TOP 10 Location, COUNT(MissionStatus) AS Successful_mission_count
+FROM SQLPractice.dbo.space_missions
+WHERE MissionStatus = 'Success'
+GROUP BY Location
+ORDER BY successful_mission_count DESC
+```
+| S/N | Location                                            | Successful Mission Count |
+|--------------:|----------------------------------------------------|-------------------------|
+|             1 | Site 31/6, Baikonur Cosmodrome, Kazakhstan        |                     236 |
+|             2 | Site 132/1, Plesetsk Cosmodrome, Russia           |                     203 |
+|             3 | Site 43/4, Plesetsk Cosmodrome, Russia            |                     199 |
+|             4 | Site 41/1, Plesetsk Cosmodrome, Russia            |                     186 |
+|             5 | Site 132/2, Plesetsk Cosmodrome, Russia           |                     164 |
+|             6 | Site 1/5, Baikonur Cosmodrome, Kazakhstan         |                     155 |
+|             7 | Site 133/3, Plesetsk Cosmodrome, Russia           |                     147 |
+|             8 | LC-39A, Kennedy Space Center, Florida, USA       |                     146 |
+|             9 | Site 43/3, Plesetsk Cosmodrome, Russia            |                     134 |
+|            10 | ELA-2, Guiana Space Centre, French Guiana, France |                     115 |
+
+---
+
+8. Top 5 companies by total count of missions
+- The query below yields the output in the following table and it shows the top 5 companies with the most space missions.
+```sql
+SELECT TOP 5 Company, COUNT(Mission) AS Total_missions
+FROM SQLPractice.dbo.space_missions
+GROUP BY Company
+ORDER BY Total_missions DESC
+```
+| S/N | Company           | Total Missions |
+|--------------:|-------------------|---------------:|
+| 1             | RVSN USSR         | 1777          |
+| 2             | CASC              | 338           |
+| 3             | Arianespace       | 293           |
+| 4             | General Dynamics  | 251           |
+| 5             | VKS RF            | 216           |
+
+---
+
+9. Top 5 companies by succesful missions
+- The query below yields the output in the following table and it shows the top 5 companies with the most successful space missions.
+```sql
+SELECT TOP 5 Company, COUNT(Mission) AS Successful_missions
+FROM SQLPractice.dbo.space_missions
+WHERE MissionStatus = 'Success'
+GROUP BY Company
+ORDER BY Successful_missions DESC
+```
+| S/N | Company            | Successful Missions |
+|--------------|--------------------|--------------------|
+| 1            | RVSN USSR          | 1614               |
+| 2            | CASC               | 318                |
+| 3            | Arianespace        | 282                |
+| 4            | General Dynamics   | 203                |
+| 5            | VKS RF             | 202                |
+
+---
+
+10. How does the mission success rate vary between active and inactive rockets?
+- The query below yields the following table whuch shows percentage of total successful missions that active and retired rockets have embarked on.
+```sql
+WITH count_rocket_status AS (
+SELECT RocketStatus, COUNT(RocketStatus) Rocket_status_count
+FROM SQLPractice.dbo.space_missions
+WHERE MissionStatus = 'Success'
+GROUP BY RocketStatus
+),
+
+overall_count AS (
+SELECT COUNT(Mission) Overal_mission_count
+FROM SQLPractice.dbo.space_missions
+WHERE MissionStatus = 'Success'
+)
+
+SELECT RocketStatus, ROUND((Rocket_status_count * 100.0 / (SELECT Overal_mission_count FROM overall_count)), 2) AS Percentage_total
+FROM count_rocket_status
+ORDER BY Percentage_total DESC
+```
+| S/N | RocketStatus | Percentage_total |
+|--------------|--------------|-----------------|
+| 1            | Retired      | 77.39           |
+| 2            | Active       | 22.61           |
+
+---
+
+11. Top 5 most used rockets by number of missions and rocket status.
+- Thi squery aims to show the 5 most used rockets, number of missions those rockets have embarked on and the current status of the rocket.
+```sql
+SELECT TOP 5 Rocket, COUNT(Rocket) count_of_rocket_missions, RocketStatus
+FROM SQLPractice.dbo.space_missions
+GROUP BY Rocket, RocketStatus
+ORDER BY count_of_rocket_missions DESC
+```
+| S/N      | Rocket                     | Count of Rocket Missions | Rocket Status |
+|----------------------|----------------------------|--------------------------|---------------|
+| 1                    | Cosmos-3M (11K65M)         | 446                      | Retired       |
+| 2                    | Voskhod                    | 299                      | Retired       |
+| 3                    | Molniya-M /Block ML        | 128                      | Retired       |
+| 4                    | Cosmos-2I (63SM)           | 126                      | Retired       |
+| 5                    | Soyuz U                    | 125                      | Retired       |
+
+---
+
+## Data Visualization
+This the visual representation for this project, it shows charts representing each of the problem statements for better understanding.
+
+![Image](Space_missions_Dashboard_1.png)
+![Image](Space_missions_Dashboard_2.png)
+
+The live dashboard can be seen and interacted with [here](https://public.tableau.com/app/profile/afokoghene.osiobe.arierhi/viz/Spacemissions0_1/SpaceMissions1)
+
+---
+
+## Insights
+1. From the trend of space missions over time, it is seen that 1957 had the least number(3) of space missions while 2021(157) had the highest. This can be attributed to technological advancements over time and the willingness to work together and resources between countries and companies involved in this industry. A spike in the number of space missions is seen in though and this can be attributed to the increase in the deployment of satellites for various purposes, including communication, weather monitoring, and Earth observation. The spike can also be as a result of the notable collaborations between space agencies from different countries. Space missions were not recorded for the whole of 2022 as the dataset. 
+
+2. The year 1957 had the least successful missions has it had just 3 total missions. In 2021, 143 successful missions were recorded. It can be seen that the success rate of missions increased over time with 2021 being the peak. The inrease in success rate can be attached to the most recent technological advancements.
+
+3. On the trend of failed missions over the years, it is seen that failed missions were high from around 1958 to 1974. This high failure rate between that period of time can be attributed to the fact that it was the early stages of space exploration, technological challenges, competition and haste(space race between the United States and the Soviet Union was at its peak during this period), limited understanding of space environment(this made it difficult to even know what to expect in the outer world).
+
+4. It is seen that there have been more successful missions over time as missions with status as 'Success' contributed 89.89% to the total missions. Missiosn with 'Failure' status contributed 7.71% while 'Partial Failure' and 'Pre launch faiure' contributed 2.31% and 0.95% respectively.
+
+5. By rocket status, retired rockets are seen to have embarked on the most successsful missions as it amounts for 77.39% of total succesful missions while active rockets amounts for 22.61% of total missions.
+
+6. Russia, USA and Kazakhstan with 1,323, 1,298 and 625 as the respective count of their successful missions are the top 3 countries with the most successful missions. Russia's long-standing history and tradition in space exploration, robust launch-vehicle capabilities and the fact that they launched the first artificial satellite (Sputnik) and sent the first human (Yuri Gagarin) into space can all be attributed to their huge succcess in space missions as they are somehow experts in the industry. The USA has been on the forefront of technological innovation, developing cutting-edge spacecraft, launch vehicles, and space exploration technologies and this is enough reason for its being so successful with space missions. Kazakhstan on the other hand is very successful with space missions because it is home to the Baikonur Cosmodrome (Baikonur offers unique geographical advantages, such as its proximity to the equator, allowing rockets to take advantage of the Earth's rotation for more efficient launches), which has been a critical launch site for both Soviet and Russian space missions from the start of space missions.
+
+7. The USA, Kazakhstan, Russia, China and France in descending orderdo have the highest amount of failed missions since for the period recorded.
+
+8. Site 31/6, Baikonur Cosmodrome, Kazakhstan is the launch loaction with the highest number of successful space missions (the unqiue geographical advantages the Baikonur Cosmodrome, such as its proximity to the equator as stated above).
+
+9. RVSN USSR is the company with the most total missions with total missions of 1,777 of which 1,614 were successful(RVSN USSR is a branch of the armed forces of the former Soviet Union and current Russian Federation responsible for operating and maintaining intercontinental ballistic missiles and this is links to why it embarked on that much space missions as Russia wis on of the countries that started space travel and were very successful in it).
+
+10. CASC (China Aerospace Science and Technology Corporation) with 338 total space missions is the second company with highest total missions. This company has had a total of 318 successful missions. 
+
+11. On frequency of rockets embarking on space missions:  
+- The most used rocket for missions is the Cosmos-3M (11K65M) rocket. It has been used for 446 missions so far and it seems it’s a Russian rocket since it has been used for only Russian space missions. This rocket is no longer active.
+- The second most used Rocket on the dataset is the Voskhod and it has been used for 299. It’s been used mostly for Russian and Kazakhstan space missions. This rocket is retired.
+- The third most used Rocket on the dataset is the Molniya-M /Block ML rocket and it has been used for 128 missions so far. It has been used mostly for Russian missions and a few Kazakhstan missions.This rocket is also retired and no longer active.	
+
+---
+
+Big THANKS again if you did read till this spot, I appreciate the time taken out to go through the project. I know it was more than the last one, but the details makes you go through the process with me and it also makes for easy understanding of process and results.
+You can connect with me on [Twitter](https://twitter.com/__afoke?t=_YX2DAel3R3aWZGDvSEZ9w&s=09), and [LinkedIn](https://www.linkedin.com/in/afokoghene-osiobe-arierhi-9b235b25b).
+
+Bye for now!
 
 
 
